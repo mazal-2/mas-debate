@@ -5,7 +5,10 @@ from datetime import datetime
 
 
 class DataDocument(BaseModel):
-    """单个数据文档，可以是表格或文本"""
+    """
+    单个数据文档，可以是表格或文本
+    这种格式可用于存储好document这个变量所需要的各项元数据
+    """
     id: str = Field(description="文档唯一标识")
     title: str = Field(description="文档标题")
     content_type: str = Field(description="内容类型：table/text")
@@ -19,6 +22,8 @@ class Dossier(BaseModel):
     """
     辩论信息载体，专注于存储和检索数据证明。
     Agent在辩论过程中可以引用dossier中的数据作为论据。
+    
+    stock_pool: 能够从某个特定的股票集来做为agents的检索挑选范围，比如从akshare的api接口接入固定股票池的数据，后面也能够agent有足够的数据来进行股票的挑选
     """
 
     # 任务基本信息（上下文）
@@ -39,7 +44,10 @@ class Dossier(BaseModel):
     def add_numerical_document(self, title: str, data: pd.DataFrame,
                               metadata: Optional[Dict[str, Any]] = None,
                               source: Optional[str] = None) -> str:
-        """添加数值型文档（表格数据）"""
+        """
+        添加数值型文档（表格数据）
+        将则这个document装到这个dossier的documents里面，且带有元数据可供查询
+        """
         doc_id = f"num_{len(self.numerical_documents) + 1:04d}"
         # ── 关键修复在这里 ────────────────────────────────
         if not isinstance(data, pd.DataFrame):
@@ -112,10 +120,10 @@ class Dossier(BaseModel):
                     self.topic_index[word].append(doc.id)
 
     def get_document(self, doc_id: str) -> Optional[DataDocument]:
-        """根据ID获取文档"""
+        """根据所有document带的元数据里面的id来获取文档"""
         all_docs = self.numerical_documents + self.textual_documents
         for doc in all_docs:
-            if doc.id == doc_id:
+            if doc.id == doc_id:  
                 return doc
         return None
 
